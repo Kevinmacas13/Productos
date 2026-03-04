@@ -9,6 +9,43 @@ import {
 } from "react-native";
 
 import { useState } from "react";
+let productos = [
+  {
+    id: 100,
+    nombre: "Laptop",
+    categoria: "computador",
+    precioCompra: 1000,
+    precioVenta: 1200,
+  },
+  {
+    id: 101,
+    nombre: "Smartphone",
+    categoria: "celular",
+    precioCompra: 400,
+    precioVenta: 500,
+  },
+  {
+    id: 102,
+    nombre: "Tablet",
+    categoria: "celular",
+    precioCompra: 200,
+    precioVenta: 300,
+  },
+  {
+    id: 103,
+    nombre: "Monitor",
+    categoria: "computador",
+    precioCompra: 150,
+    precioVenta: 200,
+  },
+  {
+    id: 104,
+    nombre: "Teclado",
+    categoria: "periferico",
+    precioCompra: 30,
+    precioVenta: 50,
+  },
+];
 export default function App() {
   const [codigo, setCodigo] = useState("");
   const [nombre, setNombre] = useState("");
@@ -16,43 +53,47 @@ export default function App() {
   const [precioCompra, setPrecioCompra] = useState("");
   const [precioVenta, setPrecioVenta] = useState("");
   const [esNuevo, setEsNuevo] = useState(false);
-  const [productos, setProductos] = useState([
-    {
-      id: 100,
-      nombre: "Laptop",
-      categoria: "computador",
-      precioCompra: 1000,
-      precioVenta: 1200,
-    },
-    {
-      id: 101,
-      nombre: "Smartphone",
-      categoria: "celular",
-      precioCompra: 400,
-      precioVenta: 500,
-    },
-    {
-      id: 102,
-      nombre: "Tablet",
-      categoria: "celular",
-      precioCompra: 200,
-      precioVenta: 300,
-    },
-    {
-      id: 103,
-      nombre: "Monitor",
-      categoria: "computador",
-      precioCompra: 150,
-      precioVenta: 200,
-    },
-    {
-      id: 104,
-      nombre: "Teclado",
-      categoria: "periferico",
-      precioCompra: 30,
-      precioVenta: 50,
-    },
-  ]);
+  const [editar, setEditar] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+
+  let nuevoProducto = () => {
+    setCodigo("");
+    setNombre("");
+    setCategoria("");
+    setPrecioCompra("");
+    setPrecioVenta("");
+    setEsNuevo(true);
+    setEditar(true);
+  };
+  let guardarProducto = () => {
+    if (esNuevo) {
+      let nuevoProducto = {
+        id: productos.length + 1,
+        nombre: nombre,
+        categoria: categoria,
+        precioCompra: parseFloat(precioCompra),
+        precioVenta: parseFloat(precioVenta),
+      };
+
+      productos.push(nuevoProducto);
+      console.log("Nuevo Producto");
+    } else {
+      console.log("Modificar Producto");
+      let indice = productos.findIndex(
+        (producto) => producto.id === parseInt(codigo),
+      );
+
+      if (indice !== -1) {
+        productos[indice].nombre = nombre;
+        productos[indice].categoria = categoria;
+        productos[indice].precioCompra = parseFloat(precioCompra);
+        productos[indice].precioVenta = parseFloat(precioVenta);
+      }
+    }
+    setEditar(false);
+    setRefresh(!refresh);
+    nuevoProducto();
+  };
 
   let ItemProducto = (props) => (
     <View style={styles.itemNumeracion}>
@@ -63,29 +104,32 @@ export default function App() {
       </View>
       <Text style={styles.textoSecundario}>{props.producto.precioVenta}</Text>
       <View style={styles.botonesCard}>
-        <View style={styles.boton}>
-          <Button
-            title="E"
-            onPress={() => {
-              setCodigo(props.producto.id.toString());
-              setNombre(props.producto.nombre);
-              setCategoria(props.producto.categoria);
-              setPrecioCompra(props.producto.precioCompra.toString());
-              setPrecioVenta(props.producto.precioVenta.toString());
-              setEsNuevo(true);
-            }}
-          ></Button>
-        </View>
-        <View style={styles.boton}>
-          <Button
-            style={styles.boton}
-            title="X"
-            onPress={() => {
-              setProductos(productos.filter((p) => p.id !== props.producto.id));
-              setEsNuevo(false);
-            }}
-          ></Button>
-        </View>
+        <Button
+          style={styles.boton}
+          title="E"
+          onPress={() => {
+            setCodigo(props.producto.id.toString());
+            setNombre(props.producto.nombre);
+            setCategoria(props.producto.categoria);
+            setPrecioCompra(props.producto.precioCompra.toString());
+            setPrecioVenta(props.producto.precioVenta.toString());
+            setEsNuevo(false);
+            setEditar(true);
+          }}
+        ></Button>
+        <Button
+          style={styles.boton}
+          title="X"
+          onPress={() => {
+            let indice = productos.findIndex(
+              (producto) => producto.id === props.producto.id,
+            );
+            productos.splice(indice, 1);
+            setEsNuevo(false);
+            setEditar(false);
+            setRefresh(!refresh);
+          }}
+        ></Button>
       </View>
     </View>
   );
@@ -99,21 +143,21 @@ export default function App() {
         placeholder="CÓDIGO"
         value={codigo}
         onChangeText={(texto) => setCodigo(texto)}
-        editable={esNuevo}
+        editable={editar}
       />
       <TextInput
         style={styles.input}
         placeholder="NOMBRE"
         value={nombre}
         onChangeText={(texto) => setNombre(texto)}
-        editable={esNuevo}
+        editable={editar}
       />
       <TextInput
         style={styles.input}
         placeholder="CATEGORIA"
         value={categoria}
         onChangeText={(texto) => setCategoria(texto)}
-        editable={esNuevo}
+        editable={editar}
       />
       <TextInput
         style={styles.input}
@@ -121,45 +165,18 @@ export default function App() {
         value={precioCompra}
         keyboardType="numeric"
         onChangeText={(texto) => setPrecioCompra(texto)}
-        editable={esNuevo}
+        editable={editar}
       />
       <TextInput
         style={styles.input}
         placeholder="PRECIO DE VENTA"
         value={precioVenta}
         onChangeText={(texto) => setPrecioVenta(texto)}
-        editable={esNuevo}
+        editable={editar}
       />
       <View style={styles.botonera}>
-        <Button
-          title="NUEVO"
-          onPress={() => {
-            setCodigo("");
-            setNombre("");
-            setCategoria("");
-            setPrecioCompra("");
-            setPrecioVenta("");
-            setEsNuevo(true);
-          }}
-        ></Button>
-        <Button
-          title="GUARDAR"
-          onPress={() => {
-            let nuevoProducto = {
-              id: productos.length + 1,
-              nombre: nombre,
-              categoria: categoria,
-              precio: parseFloat(precioVenta),
-            };
-            setProductos([...productos, nuevoProducto]);
-            setCodigo("");
-            setNombre("");
-            setCategoria("");
-            setPrecioCompra("");
-            setPrecioVenta("");
-            setEsNuevo(false);
-          }}
-        ></Button>
+        <Button title="NUEVO" onPress={() => nuevoProducto()}></Button>
+        <Button title="GUARDAR" onPress={() => guardarProducto()}></Button>
         <Text>Productos: {productos.length}</Text>
       </View>
       <FlatList
@@ -253,8 +270,5 @@ const styles = StyleSheet.create({
   infoProducto: {
     marginLeft: 10,
     flex: 9,
-  },
-  boton: {
-    width: 35,
   },
 });
