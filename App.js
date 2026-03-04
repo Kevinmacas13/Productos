@@ -6,8 +6,9 @@ import {
   FlatList,
   Button,
   TextInput,
+  TouchableOpacity,
+  Modal,
 } from "react-native";
-
 import { useState } from "react";
 let productos = [
   {
@@ -55,6 +56,8 @@ export default function App() {
   const [esNuevo, setEsNuevo] = useState(false);
   const [editar, setEditar] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [productoEliminar, setProductoEliminar] = useState(null);
 
   let nuevoProducto = () => {
     setCodigo("");
@@ -95,43 +98,55 @@ export default function App() {
     nuevoProducto();
   };
 
+  let eliminarProducto = () => {
+    if (productoEliminar !== null) {
+      let indice = productos.findIndex(
+        (producto) => producto.id === productoEliminar,
+      );
+
+      if (indice !== -1) {
+        productos.splice(indice, 1);
+      }
+
+      setModalVisible(false);
+      setProductoEliminar(null);
+      setRefresh(!refresh);
+    }
+  };
+
   let ItemProducto = (props) => (
-    <View style={styles.itemNumeracion}>
-      <Text style={styles.textoPrincipal}>{props.producto.id}</Text>
-      <View style={styles.infoProducto}>
-        <Text style={styles.textoPrincipal}>{props.producto.nombre}</Text>
-        <Text>{props.producto.categoria}</Text>
+    <TouchableOpacity
+      onPress={() => {
+        setCodigo(props.producto.id.toString());
+        setNombre(props.producto.nombre);
+        setCategoria(props.producto.categoria);
+        setPrecioCompra(props.producto.precioCompra.toString());
+        setPrecioVenta(props.producto.precioVenta.toString());
+        setEsNuevo(false);
+        setEditar(true);
+      }}
+    >
+      <View style={styles.itemNumeracion}>
+        <Text style={styles.textoPrincipal}>{props.producto.id}</Text>
+
+        <View style={styles.infoProducto}>
+          <Text style={styles.textoPrincipal}>{props.producto.nombre}</Text>
+          <Text>{props.producto.categoria}</Text>
+        </View>
+
+        <Text style={styles.textoSecundario}>{props.producto.precioVenta}</Text>
+
+        <View style={styles.botonesCard}>
+          <Button
+            title="X"
+            onPress={() => {
+              setProductoEliminar(props.producto.id);
+              setModalVisible(true);
+            }}
+          />
+        </View>
       </View>
-      <Text style={styles.textoSecundario}>{props.producto.precioVenta}</Text>
-      <View style={styles.botonesCard}>
-        <Button
-          style={styles.boton}
-          title="E"
-          onPress={() => {
-            setCodigo(props.producto.id.toString());
-            setNombre(props.producto.nombre);
-            setCategoria(props.producto.categoria);
-            setPrecioCompra(props.producto.precioCompra.toString());
-            setPrecioVenta(props.producto.precioVenta.toString());
-            setEsNuevo(false);
-            setEditar(true);
-          }}
-        ></Button>
-        <Button
-          style={styles.boton}
-          title="X"
-          onPress={() => {
-            let indice = productos.findIndex(
-              (producto) => producto.id === props.producto.id,
-            );
-            productos.splice(indice, 1);
-            setEsNuevo(false);
-            setEditar(false);
-            setRefresh(!refresh);
-          }}
-        ></Button>
-      </View>
-    </View>
+    </TouchableOpacity>
   );
   return (
     <View style={styles.container}>
@@ -179,6 +194,36 @@ export default function App() {
         <Button title="GUARDAR" onPress={() => guardarProducto()}></Button>
         <Text>Productos: {productos.length}</Text>
       </View>
+
+      <Modal visible={modalVisible} transparent={true} animationType="fade">
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              padding: 20,
+              borderRadius: 10,
+              width: 250,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ marginBottom: 20 }}>
+              ¿Está seguro que quiere eliminar?
+            </Text>
+
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Button title="Aceptar" onPress={eliminarProducto} />
+              <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
       <FlatList
         style={styles.lista}
         data={productos}
